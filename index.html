@@ -169,6 +169,61 @@
       </div>
 
       <div class="toolbar-group">
+        <!-- Dropdown để chọn màu sắc chủ đạo -->
+        <div class="dropdown">
+          <button class="button theme" id="color-theme-btn" title="Thay đổi màu chủ đạo">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="12" cy="12" r="10"></circle>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            <span>Màu</span>
+          </button>
+          <div class="dropdown-content" id="color-theme-dropdown">
+            <div class="color-option" data-theme="blue">
+              <div class="color-swatch blue-swatch"></div>
+              <span>Xanh dương</span>
+            </div>
+            <div class="color-option" data-theme="purple">
+              <div class="color-swatch purple-swatch"></div>
+              <span>Tím</span>
+            </div>
+            <div class="color-option" data-theme="green">
+              <div class="color-swatch green-swatch"></div>
+              <span>Xanh lá</span>
+            </div>
+            <div class="color-option" data-theme="red">
+              <div class="color-swatch red-swatch"></div>
+              <span>Đỏ</span>
+            </div>
+            <div class="color-option" data-theme="orange">
+              <div class="color-swatch orange-swatch"></div>
+              <span>Cam</span>
+            </div>
+            <div class="color-option" data-theme="teal">
+              <div class="color-swatch teal-swatch"></div>
+              <span>Ngọc lam</span>
+            </div>
+            <div class="color-option" data-theme="slate">
+              <div class="color-swatch slate-swatch"></div>
+              <span>Xám</span>
+            </div>
+            <div class="color-option" data-theme="black">
+              <div class="color-swatch black-swatch"></div>
+              <span>Đen</span>
+            </div>
+          </div>
+        </div>
+
         <button class="button theme" id="theme-toggle-btn" title="Thay đổi giao diện sáng/tối">
           <svg
             id="theme-icon-light"
@@ -209,6 +264,61 @@
           </svg>
         </button>
       </div>
+    </div>
+
+    <!-- Thanh công cụ chế độ xem -->
+    <div class="view-mode-toolbar">
+      <button class="view-mode-button" id="view-mode-editor">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+        </svg>
+        Chỉ soạn thảo
+      </button>
+      <button class="view-mode-button active" id="view-mode-split">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="12" y1="3" x2="12" y2="21"></line>
+        </svg>
+        Chia đôi
+      </button>
+      <button class="view-mode-button" id="view-mode-preview">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+        </svg>
+        Chỉ xem trước
+      </button>
     </div>
 
     <!-- Save Dialog -->
@@ -256,7 +366,7 @@
     </div>
 
     <div class="container">
-      <div class="panel">
+      <div class="panel" id="editor-panel">
         <div class="panel-header">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -279,7 +389,7 @@
         </div>
       </div>
 
-      <div class="panel">
+      <div class="panel" id="preview-panel">
         <div class="panel-header">
           <svg
             xmlns="http://www.w3.org/2000/svg"

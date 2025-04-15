@@ -21,7 +21,8 @@
   .toolbar,
   .container,
   #status,
-  .dialog-overlay {
+  .dialog-overlay,
+  .view-mode-toolbar {
     display: none !important;
   }
 

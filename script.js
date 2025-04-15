@@ -84,11 +84,27 @@ const confirmMessageElement = document.getElementById("confirm-message");
 const confirmCancelButton = document.getElementById("confirm-cancel-btn");
 const confirmOkButton = document.getElementById("confirm-ok-btn");
 const printContentElement = document.getElementById("print-content");
+const editorPanel = document.getElementById("editor-panel");
+const previewPanel = document.getElementById("preview-panel");
+const viewModeEditorButton = document.getElementById("view-mode-editor");
+const viewModeSplitButton = document.getElementById("view-mode-split");
+const viewModePreviewButton = document.getElementById("view-mode-preview");
+const colorThemeButton = document.getElementById("color-theme-btn");
+const colorThemeDropdown = document.getElementById("color-theme-dropdown");
+
+// All dropdowns
+const dropdowns = document.querySelectorAll(".dropdown");
 
 // Library loading state
 let markedLoaded = false;
 let mermaidLoaded = false;
 let currentSaveAction = null;
+
+// Current view mode
+let currentViewMode = "split"; // "editor", "split", "preview"
+
+// Current color theme
+let currentColorTheme = "blue"; // "blue", "purple", "green", "red", "orange", "teal"
 
 // Load external libraries
 function loadScript(url, callback) {
@@ -267,6 +283,27 @@ function toggleTheme() {
   }
 }
 
+// Set color theme
+function setColorTheme(theme) {
+  // Remove current theme class
+  document.body.classList.remove(`theme-${currentColorTheme}`);
+
+  // Add new theme class
+  document.body.classList.add(`theme-${theme}`);
+
+  // Save to localStorage
+  localStorage.setItem("colorTheme", theme);
+
+  // Update current theme
+  currentColorTheme = theme;
+
+  // Close dropdown
+  closeAllDropdowns();
+
+  // Re-render markdown to apply new theme
+  renderMarkdown();
+}
+
 // Initialize theme from localStorage
 function initTheme() {
   const savedTheme = localStorage.getItem("theme");
@@ -277,6 +314,67 @@ function initTheme() {
       themeIconDark.style.display = "block";
     }
   }
+
+  // Initialize color theme
+  const savedColorTheme = localStorage.getItem("colorTheme");
+  if (savedColorTheme) {
+    setColorTheme(savedColorTheme);
+  } else {
+    setColorTheme("blue"); // Default theme
+  }
+}
+
+// Change view mode
+function setViewMode(mode) {
+  currentViewMode = mode;
+
+  // Update active button
+  viewModeEditorButton.classList.toggle("active", mode === "editor");
+  viewModeSplitButton.classList.toggle("active", mode === "split");
+  viewModePreviewButton.classList.toggle("active", mode === "preview");
+
+  // Update panels
+  switch (mode) {
+    case "editor":
+      editorPanel.classList.remove("hidden");
+      editorPanel.classList.add("full");
+      previewPanel.classList.add("hidden");
+      previewPanel.classList.remove("full");
+      break;
+    case "split":
+      editorPanel.classList.remove("hidden", "full");
+      previewPanel.classList.remove("hidden", "full");
+      break;
+    case "preview":
+      editorPanel.classList.add("hidden");
+      editorPanel.classList.remove("full");
+      previewPanel.classList.remove("hidden");
+      previewPanel.classList.add("full");
+      break;
+  }
+
+  // Save preference
+  localStorage.setItem("viewMode", mode);
+}
+
+// Toggle dropdown visibility
+function toggleDropdown(dropdown) {
+  // Close all other dropdowns first
+  dropdowns.forEach((d) => {
+    if (d !== dropdown) {
+      d.classList.remove("open");
+    }
+  });
+
+  // Toggle current dropdown
+  dropdown.classList.toggle("open");
+}
+
+// Close all dropdowns
+function closeAllDropdowns() {
+  dropdowns.forEach((dropdown) => {
+    dropdown.classList.remove("open");
+  });
 }
 
 // Show save dialog for markdown files
@@ -533,12 +631,6 @@ function showDocumentList() {
         <div class="document-name">${doc.name}</div>
         <div class="document-date">${formattedDate}</div>
         <div class="document-actions">
-          <button class="load-btn" title="Mở tài liệu">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M5 12h14"></path>
-              <path d="M12 5l7 7-7 7"></path>
-            </svg>
-          </button>
           <button class="delete-btn" title="Xóa tài liệu">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M3 6h18"></path>
@@ -552,11 +644,15 @@ function showDocumentList() {
       `;
 
       // Add event listeners
-      item.querySelector(".load-btn").addEventListener("click", () => {
-        loadDocumentFromLocalStorage(doc.id);
+      item.addEventListener("click", (e) => {
+        // Ignore clicks on the delete button
+        if (!e.target.closest(".delete-btn")) {
+          loadDocumentFromLocalStorage(doc.id);
+        }
       });
 
-      item.querySelector(".delete-btn").addEventListener("click", () => {
+      item.querySelector(".delete-btn").addEventListener("click", (e) => {
+        e.stopPropagation(); // Ngăn không cho sự kiện click lan lên document-item
         showConfirmDialog("Xóa tài liệu", `Bạn có chắc chắn muốn xóa tài liệu "${doc.name}"?`, () =>
           deleteDocumentFromLocalStorage(doc.id)
         );
@@ -673,6 +769,41 @@ saveLocalButton.addEventListener("click", saveToLocalStorage);
 openLocalButton.addEventListener("click", showDocumentList);
 printButton.addEventListener("click", preparePrint);
 
+// View mode buttons
+viewModeEditorButton.addEventListener("click", () => setViewMode("editor"));
+viewModeSplitButton.addEventListener("click", () => setViewMode("split"));
+viewModePreviewButton.addEventListener("click", () => setViewMode("preview"));
+
+// Handle dropdown opening/closing
+document.addEventListener("click", function (e) {
+  // If click is outside any dropdown
+  if (!e.target.closest(".dropdown")) {
+    closeAllDropdowns();
+  }
+});
+
+// Document button (handle dropdown manually)
+documentButton.addEventListener("click", function (e) {
+  e.stopPropagation();
+  const dropdown = this.closest(".dropdown");
+  toggleDropdown(dropdown);
+});
+
+// Color theme button (handle dropdown manually)
+colorThemeButton.addEventListener("click", function (e) {
+  e.stopPropagation();
+  const dropdown = this.closest(".dropdown");
+  toggleDropdown(dropdown);
+});
+
+// Color theme options
+document.querySelectorAll(".color-option").forEach((option) => {
+  option.addEventListener("click", function () {
+    const theme = this.getAttribute("data-theme");
+    setColorTheme(theme);
+  });
+});
+
 // Dialog event listeners
 saveConfirmButton.addEventListener("click", executeSaveAction);
 saveCancelButton.addEventListener("click", () => {
@@ -718,212 +849,18 @@ inputElement.addEventListener("input", function () {
   }, 1000); // 1 second delay
 });
 
-// Thêm các biến và DOM Elements mới
-const viewEditButton = document.getElementById("view-edit-btn");
-const viewPreviewButton = document.getElementById("view-preview-btn");
-const viewBothButton = document.getElementById("view-both-btn");
-const headingColorOptions = document.querySelectorAll(".color-option");
-let currentHeadingColor = localStorage.getItem("heading-color") || "#4361ee";
-
-// Chức năng chuyển đổi chế độ xem
-function setViewMode(mode) {
-  const container = document.querySelector(".container");
-
-  // Xóa tất cả class liên quan đến chế độ xem
-  container.classList.remove("editor-only", "preview-only");
-
-  // Xóa trạng thái active trên tất cả nút
-  viewEditButton.classList.remove("active");
-  viewPreviewButton.classList.remove("active");
-  viewBothButton.classList.remove("active");
-
-  // Thêm class phù hợp
-  if (mode === "editor") {
-    container.classList.add("editor-only");
-    viewEditButton.classList.add("active");
-  } else if (mode === "preview") {
-    container.classList.add("preview-only");
-    viewPreviewButton.classList.add("active");
-  } else {
-    // Chế độ mặc định: cả hai
-    viewBothButton.classList.add("active");
-  }
-
-  // Lưu cài đặt
-  localStorage.setItem("view-mode", mode);
-}
-
-// Cải thiện chức năng mở tài liệu từ danh sách
-function showDocumentList() {
-  try {
-    // Get stored documents
-    const storedDocs = JSON.parse(localStorage.getItem("markdown-docs") || "[]");
-
-    // Clear the list
-    documentListElement.innerHTML = "";
-
-    if (storedDocs.length === 0) {
-      documentListElement.innerHTML = '<div class="empty-list">Không có tài liệu nào được lưu.</div>';
-      documentListOverlay.style.display = "flex";
-      return;
-    }
-
-    // Sort by date, newest first
-    storedDocs.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-    // Create list items
-    storedDocs.forEach((doc) => {
-      const date = new Date(doc.date);
-      const formattedDate = `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()} ${date.getHours()}:${date
-        .getMinutes()
-        .toString()
-        .padStart(2, "0")}`;
-
-      const item = document.createElement("div");
-      item.className = "document-item";
-      item.setAttribute("data-id", doc.id); // Thêm data-id để dễ dàng xác định document
-      item.innerHTML = `
-        <div class="document-name">${doc.name}</div>
-        <div class="document-date">${formattedDate}</div>
-        <div class="document-actions">
-          <button class="delete-btn" title="Xóa tài liệu">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M3 6h18"></path>
-              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-              <line x1="10" y1="11" x2="10" y2="17"></line>
-              <line x1="14" y1="11" x2="14" y2="17"></line>
-            </svg>
-          </button>
-        </div>
-      `;
-
-      // Thêm sự kiện cho toàn bộ item
-      item.addEventListener("click", (e) => {
-        // Không tải document khi click vào nút xóa
-        if (!e.target.closest(".delete-btn")) {
-          loadDocumentFromLocalStorage(doc.id);
-        }
-      });
-
-      // Thêm sự kiện cho nút xóa
-      const deleteBtn = item.querySelector(".delete-btn");
-      deleteBtn.addEventListener("click", (e) => {
-        e.stopPropagation(); // Ngăn sự kiện nổi bọt lên item
-        showConfirmDialog("Xóa tài liệu", `Bạn có chắc chắn muốn xóa tài liệu "${doc.name}"?`, () =>
-          deleteDocumentFromLocalStorage(doc.id)
-        );
-      });
-
-      documentListElement.appendChild(item);
-    });
-
-    // Show dialog
-    documentListOverlay.style.display = "flex";
-  } catch (error) {
-    console.error("Error loading document list:", error);
-    showStatus("Có lỗi khi tải danh sách tài liệu!", false);
-  }
-}
-
-// Chức năng thay đổi màu heading
-function setHeadingColor(color) {
-  // Tạo CSS cho màu heading
-  const headingColorStyle = document.getElementById("heading-color-style") || document.createElement("style");
-  headingColorStyle.id = "heading-color-style";
-  headingColorStyle.textContent = `
-    #output h1, #output h2, #output h3, #output h4, #output h5, #output h6,
-    #print-content h1, #print-content h2, #print-content h3, #print-content h4, #print-content h5, #print-content h6,
-    .panel-header, .dialog h3 {
-      color: ${color} !important;
-    }
-    
-    #output blockquote, #print-content blockquote {
-      border-left-color: ${color} !important;
-    }
-    
-    .view-btn.active {
-      border-color: ${color} !important;
-      color: ${color} !important;
-    }
-  `;
-
-  document.head.appendChild(headingColorStyle);
-
-  // Cập nhật màu active
-  currentHeadingColor = color;
-  localStorage.setItem("heading-color", color);
-
-  // Cập nhật giao diện
-  document.querySelectorAll(".color-option").forEach((option) => {
-    option.classList.remove("active");
-    if (option.getAttribute("data-color") === color) {
-      option.classList.add("active");
-    }
-  });
-}
-
-// Khởi tạo chế độ xem từ localStorage
-function initViewMode() {
-  const savedMode = localStorage.getItem("view-mode");
-  if (savedMode) {
-    setViewMode(savedMode);
-  } else {
-    setViewMode("both"); // Mặc định: hiển thị cả hai
-  }
-}
-
-// Khởi tạo màu heading từ localStorage
-function initHeadingColor() {
-  const savedColor = localStorage.getItem("heading-color");
-  if (savedColor) {
-    setHeadingColor(savedColor);
-  } else {
-    setHeadingColor("#4361ee"); // Màu mặc định
-  }
-}
-
-// Bổ sung chức năng khởi tạo
-document.addEventListener("DOMContentLoaded", function () {
-  initTheme();
-  initViewMode();
-  initHeadingColor();
-  loadLibraries();
-
-  // Thêm sự kiện cho các nút chế độ xem
-  viewEditButton.addEventListener("click", () => setViewMode("editor"));
-  viewPreviewButton.addEventListener("click", () => setViewMode("preview"));
-  viewBothButton.addEventListener("click", () => setViewMode("both"));
-
-  // Thêm sự kiện cho các tùy chọn màu
-  document.querySelectorAll(".color-option").forEach((option) => {
-    option.addEventListener("click", () => {
-      const color = option.getAttribute("data-color");
-      setHeadingColor(color);
-    });
-  });
-
-  // Auto-load last document từ localStorage nếu có
-  try {
-    const storedDocs = JSON.parse(localStorage.getItem("markdown-docs") || "[]");
-    if (storedDocs.length > 0) {
-      // Sắp xếp theo ngày, mới nhất trước
-      storedDocs.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-      // Tải tài liệu gần nhất
-      inputElement.value = storedDocs[0].content;
-      renderMarkdown();
-      showStatus(`Đã tải "${storedDocs[0].name}" tự động!`, true);
-    }
-  } catch (error) {
-    console.error("Error auto-loading document:", error);
-  }
-});
-
 // Initialize
 document.addEventListener("DOMContentLoaded", function () {
   initTheme();
   loadLibraries();
+
+  // Set initial view mode
+  const savedViewMode = localStorage.getItem("viewMode");
+  if (savedViewMode) {
+    setViewMode(savedViewMode);
+  } else {
+    setViewMode("split"); // Default to split view
+  }
 
   // Auto-load last document from localStorage if available
   try {
