@@ -1,0 +1,762 @@
+:root {
+  /* Light theme */
+  --primary-color: #4361ee;
+  --secondary-color: #3f37c9;
+  --accent-color: #4cc9f0;
+  --success-color: #4ade80;
+  --warning-color: #fbbf24;
+  --error-color: #f87171;
+  --bg-color: #f8fafc;
+  --panel-bg: #ffffff;
+  --text-color: #334155;
+  --text-muted: #64748b;
+  --border-color: #e2e8f0;
+  --code-bg: #f1f5f9;
+  --scrollbar-track: #f1f5f9;
+  --scrollbar-thumb: #cbd5e1;
+  --scrollbar-thumb-hover: #94a3b8;
+  --dialog-overlay: rgba(0, 0, 0, 0.5);
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --radius: 8px;
+}
+
+[data-theme="dark"] {
+  --primary-color: #818cf8;
+  --secondary-color: #6366f1;
+  --accent-color: #22d3ee;
+  --success-color: #4ade80;
+  --warning-color: #fbbf24;
+  --error-color: #f87171;
+  --bg-color: #0f172a;
+  --panel-bg: #1e293b;
+  --text-color: #e2e8f0;
+  --text-muted: #94a3b8;
+  --border-color: #334155;
+  --code-bg: #1e293b;
+  --scrollbar-track: #1e293b;
+  --scrollbar-thumb: #475569;
+  --scrollbar-thumb-hover: #64748b;
+  --dialog-overlay: rgba(0, 0, 0, 0.7);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  line-height: 1.6;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.header {
+  padding: 1rem 2rem;
+  text-align: center;
+  background-color: var(--panel-bg);
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color 0.3s;
+}
+
+.header h1 {
+  color: var(--primary-color);
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+  transition: color 0.3s;
+}
+
+.header p {
+  color: var(--text-color);
+  opacity: 0.8;
+  transition: color 0.3s;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 1rem;
+  background-color: var(--panel-bg);
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color 0.3s;
+}
+
+.toolbar-group {
+  display: flex;
+  gap: 10px;
+}
+
+.button {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.button:hover {
+  background-color: var(--secondary-color);
+  transform: translateY(-1px);
+}
+
+.button.clear {
+  background-color: var(--text-color);
+}
+
+.button.example {
+  background-color: var(--accent-color);
+}
+
+.button.save {
+  background-color: var(--success-color);
+}
+
+.button.print {
+  background-color: var(--warning-color);
+  color: #1e293b;
+}
+
+.button.theme {
+  background-color: transparent;
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+
+.button.document {
+  position: relative;
+  background-color: #0ea5e9;
+}
+
+.button.html {
+  background-color: #8b5cf6;
+}
+
+/* Dropdown styles */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: var(--panel-bg);
+  min-width: 220px;
+  box-shadow: var(--shadow);
+  z-index: 10;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-color);
+  margin-top: 5px;
+  transition: background-color 0.3s;
+}
+
+.dropdown:hover .dropdown-content,
+.dropdown:focus-within .dropdown-content {
+  display: block;
+}
+
+.dropdown-content a {
+  color: var(--text-color);
+  padding: 10px 16px;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: background-color 0.2s, color 0.3s;
+}
+
+.dropdown-content a:hover {
+  background-color: var(--scrollbar-track);
+}
+
+.dropdown-content a:first-child {
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+
+.dropdown-content a:last-child {
+  border-radius: 0 0 var(--radius) var(--radius);
+}
+
+.dropdown-content a svg {
+  flex-shrink: 0;
+}
+
+.container {
+  display: flex;
+  flex: 1;
+  width: 100%;
+  overflow: hidden;
+}
+
+.panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--panel-bg);
+  border-right: 1px solid var(--border-color);
+  transition: background-color 0.3s;
+}
+
+.panel-header {
+  padding: 12px 16px;
+  font-weight: 600;
+  color: var(--primary-color);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--panel-bg);
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.panel-content {
+  flex: 1;
+  overflow: auto;
+  position: relative;
+}
+
+/* Custom scrollbar */
+.panel-content::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.panel-content::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+  border-radius: 4px;
+}
+
+.panel-content::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 4px;
+}
+
+.panel-content::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+/* Fix for double scrollbar */
+textarea {
+  width: 100%;
+  height: 100%;
+  padding: 16px;
+  border: none;
+  font-family: "Menlo", "Monaco", "Courier New", monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-color);
+  background-color: var(--panel-bg);
+  resize: none;
+  outline: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: auto;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+/* Custom scrollbar for textarea */
+textarea::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+textarea::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+  border-radius: 4px;
+}
+
+textarea::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 4px;
+}
+
+textarea::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+#output {
+  padding: 16px;
+  height: 100%;
+  overflow: auto;
+}
+
+/* Markdown styling */
+#output h1,
+#output h2,
+#output h3,
+#output h4,
+#output h5,
+#output h6 {
+  margin-top: 0.8em;
+  margin-bottom: 0.4em;
+  color: var(--primary-color);
+  transition: color 0.3s;
+}
+
+#output h1 {
+  font-size: 1.8em;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.2em;
+  margin-top: 0;
+}
+
+#output h2 {
+  font-size: 1.5em;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.2em;
+}
+
+#output p {
+  margin-bottom: 0.7em;
+}
+
+#output ul,
+#output ol {
+  margin-bottom: 0.7em;
+  padding-left: 1.5em;
+}
+
+#output li {
+  margin-bottom: 0.3em;
+}
+
+#output code {
+  background-color: var(--code-bg);
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  font-family: monospace;
+  transition: background-color 0.3s;
+}
+
+#output pre {
+  background-color: var(--code-bg);
+  padding: 0.7em;
+  border-radius: var(--radius);
+  overflow-x: auto;
+  margin-bottom: 0.7em;
+  transition: background-color 0.3s;
+}
+
+#output blockquote {
+  border-left: 4px solid var(--primary-color);
+  padding-left: 0.7em;
+  color: var(--text-muted);
+  margin-bottom: 0.7em;
+  transition: color 0.3s;
+}
+
+#output img {
+  max-width: 100%;
+  height: auto;
+}
+
+#output table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-bottom: 0.7em;
+}
+
+#output th,
+#output td {
+  border: 1px solid var(--border-color);
+  padding: 6px;
+  text-align: left;
+  transition: border-color 0.3s;
+}
+
+#output th {
+  background-color: var(--code-bg);
+  transition: background-color 0.3s;
+}
+
+#status {
+  padding: 10px 16px;
+  border-radius: var(--radius);
+  background-color: #e8f5e9;
+  display: none;
+  animation: fadeIn 0.3s ease-in-out;
+  position: absolute;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  box-shadow: var(--shadow);
+}
+
+/* Dialog styles */
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--dialog-overlay);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.dialog {
+  background-color: var(--panel-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  width: 100%;
+  max-width: 400px;
+  padding: 20px;
+  transition: background-color 0.3s;
+}
+
+.dialog h3 {
+  margin-bottom: 16px;
+  color: var(--primary-color);
+  transition: color 0.3s;
+}
+
+.dialog-content {
+  margin-bottom: 20px;
+}
+
+.dialog-content label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--text-color);
+  transition: color 0.3s;
+}
+
+.dialog-content input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  font-size: 14px;
+  background-color: var(--panel-bg);
+  color: var(--text-color);
+  transition: border-color 0.3s, background-color 0.3s, color 0.3s;
+}
+
+.dialog-content input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.dialog-actions button {
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+}
+
+.dialog-actions button:first-child {
+  background-color: transparent;
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  transition: color 0.3s, border-color 0.3s;
+}
+
+.dialog-actions button:last-child {
+  background-color: var(--primary-color);
+  color: white;
+  transition: background-color 0.3s;
+}
+
+.dialog-actions button:hover {
+  transform: translateY(-1px);
+}
+
+.dialog-actions button:first-child:hover {
+  border-color: var(--text-muted);
+}
+
+.dialog-actions button:last-child:hover {
+  background-color: var(--secondary-color);
+}
+
+.document-list-dialog {
+  max-width: 500px;
+}
+
+.document-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.document-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color 0.2s;
+}
+
+.document-item:hover {
+  background-color: var(--scrollbar-track);
+}
+
+.document-item:last-child {
+  border-bottom: none;
+}
+
+.document-item .document-name {
+  font-weight: 500;
+  flex-grow: 1;
+}
+
+.document-item .document-date {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  margin-right: 12px;
+}
+
+.document-item .document-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.document-item button {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 2px;
+  border-radius: var(--radius);
+  transition: color 0.2s, background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.document-item button:hover {
+  color: var(--text-color);
+  background-color: var(--border-color);
+}
+
+.document-item button.delete-btn:hover {
+  color: var(--error-color);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Mermaid diagrams */
+.mermaid {
+  margin: 1.5rem 0;
+  text-align: center;
+}
+
+/* Hide print content by default */
+#print-content {
+  display: none;
+}
+
+/* Empty list message */
+.empty-list {
+  text-align: center;
+  padding: 20px;
+  color: var(--text-muted);
+}
+
+/* Responsive for very small screens */
+@media (max-width: 640px) {
+  .container {
+    flex-direction: column;
+  }
+
+  .panel {
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+    min-height: 40vh;
+  }
+
+  .toolbar {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .toolbar-group {
+    justify-content: space-between;
+  }
+
+  .button span {
+    display: none;
+  }
+}
+
+.panel-content::-webkit-scrollbar,
+textarea::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.panel-content::-webkit-scrollbar-track,
+textarea::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+  border-radius: 4px;
+}
+
+.panel-content::-webkit-scrollbar-thumb,
+textarea::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 4px;
+}
+
+.panel-content::-webkit-scrollbar-thumb:hover,
+textarea::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+/* Tùy chọn hiển thị */
+.view-options {
+  display: flex;
+  gap: 5px;
+}
+
+.view-btn {
+  background-color: transparent;
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  padding: 6px 10px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s;
+}
+
+.view-btn:hover,
+.view-btn.active {
+  background-color: var(--scrollbar-track);
+}
+
+.view-btn.active {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+.container.editor-only .panel:nth-child(2) {
+  display: none;
+}
+
+.container.preview-only .panel:nth-child(1) {
+  display: none;
+}
+
+/* Đảm bảo dropdown vẫn mở khi hover */
+.dropdown-content {
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s, visibility 0.2s;
+  display: block;
+}
+
+.dropdown:hover .dropdown-content,
+.dropdown-content:hover,
+.dropdown:focus-within .dropdown-content {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* Cải thiện document-item */
+.document-item {
+  cursor: pointer;
+}
+
+.document-item:hover {
+  background-color: var(--scrollbar-track);
+}
+
+/* Tùy chọn màu heading */
+.color-picker-container {
+  position: relative;
+  margin-top: 20px;
+}
+
+.color-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.color-option {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: transform 0.2s;
+}
+
+.color-option.active {
+  border-color: var(--text-color);
+  transform: scale(1.2);
+}
+
+.color-option:hover {
+  transform: scale(1.1);
+}
+
+/* Preset color */
+.color-blue {
+  background-color: #4361ee;
+}
+.color-purple {
+  background-color: #8b5cf6;
+}
+.color-pink {
+  background-color: #ec4899;
+}
+.color-red {
+  background-color: #ef4444;
+}
+.color-orange {
+  background-color: #f97316;
+}
+.color-green {
+  background-color: #10b981;
+}
+.color-teal {
+  background-color: #14b8a6;
+}
+.color-cyan {
+  background-color: #06b6d4;
+}

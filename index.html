@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Markdown + Mermaid Editor</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="print.css" media="print" />
+  </head>
+  <body>
+    <div class="header">
+      <h1>Trình chuyển đổi Markdown + Mermaid</h1>
+      <p>Viết Markdown và vẽ biểu đồ Mermaid với bản xem trước trực tiếp</p>
+    </div>
+
+    <div id="status"></div>
+
+    <div class="toolbar">
+      <div class="toolbar-group">
+        <button class="button clear" id="clear-btn" title="Xóa nội dung">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M3 6h18"></path>
+            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+          </svg>
+          <span>Xóa</span>
+        </button>
+        <button class="button example" id="example-btn" title="Tải ví dụ">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+          </svg>
+          <span>Tải ví dụ</span>
+        </button>
+        <div class="dropdown">
+          <button class="button document" id="document-btn" title="Quản lý tài liệu">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+            <span>Tài liệu</span>
+          </button>
+          <div class="dropdown-content">
+            <a href="#" id="save-local-btn">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                <polyline points="7 3 7 8 15 8"></polyline>
+              </svg>
+              Lưu vào trình duyệt
+            </a>
+            <a href="#" id="open-local-btn">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M5 19a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h4l2 2h4a2 2 0 0 1 2 2v1"></path>
+                <circle cx="12" cy="17" r="5"></circle>
+                <polyline points="12 14 12 20"></polyline>
+                <polyline points="15 17 12 20 9 17"></polyline>
+              </svg>
+              Mở từ trình duyệt
+            </a>
+            <a href="#" id="save-md-btn">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M14 3v4a1 1 0 0 0 1 1h4"></path>
+                <path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"></path>
+                <path d="M9 11l1 6 3-4 3 4 1-6"></path>
+              </svg>
+              Tải xuống Markdown
+            </a>
+            <a href="#" id="save-html-btn">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polyline points="16 18 22 12 16 6"></polyline>
+                <polyline points="8 6 2 12 8 18"></polyline>
+              </svg>
+              Tải xuống HTML
+            </a>
+            <a href="#" id="print-btn">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                <rect x="6" y="14" width="12" height="8"></rect>
+              </svg>
+              Xuất PDF (In)
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="toolbar-group">
+        <button class="button theme" id="theme-toggle-btn" title="Thay đổi giao diện sáng/tối">
+          <svg
+            id="theme-icon-light"
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <svg
+            id="theme-icon-dark"
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            style="display: none"
+          >
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Save Dialog -->
+    <div class="dialog-overlay" id="save-dialog-overlay">
+      <div class="dialog">
+        <h3>Lưu tài liệu</h3>
+        <div class="dialog-content">
+          <label for="document-name">Tên tài liệu:</label>
+          <input type="text" id="document-name" placeholder="Nhập tên tài liệu" />
+        </div>
+        <div class="dialog-actions">
+          <button id="save-cancel-btn">Hủy</button>
+          <button id="save-confirm-btn">Lưu</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Document List Dialog -->
+    <div class="dialog-overlay" id="document-list-overlay">
+      <div class="dialog document-list-dialog">
+        <h3>Tài liệu đã lưu</h3>
+        <div class="dialog-content">
+          <div id="document-list" class="document-list">
+            <!-- Document list will be populated here -->
+          </div>
+        </div>
+        <div class="dialog-actions">
+          <button id="document-list-close-btn">Đóng</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirm Dialog -->
+    <div class="dialog-overlay" id="confirm-dialog-overlay">
+      <div class="dialog">
+        <h3 id="confirm-title">Xác nhận</h3>
+        <div class="dialog-content">
+          <p id="confirm-message">Bạn có chắc chắn muốn thực hiện hành động này?</p>
+        </div>
+        <div class="dialog-actions">
+          <button id="confirm-cancel-btn">Hủy</button>
+          <button id="confirm-ok-btn">Đồng ý</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="panel">
+        <div class="panel-header">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+          </svg>
+          Trình soạn thảo
+        </div>
+        <div class="panel-content">
+          <textarea id="input" placeholder="Nhập Markdown ở đây. Sử dụng cú pháp ```mermaid cho biểu đồ"></textarea>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+          </svg>
+          Xem trước
+        </div>
+        <div class="panel-content">
+          <div id="output"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Only this content will be visible when printing -->
+    <div id="print-content"></div>
+
+    <!-- Load scripts -->
+    <script src="script.js"></script>
+  </body>
+</html>
