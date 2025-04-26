@@ -60,6 +60,7 @@ sequenceDiagram
 const inputElement = document.getElementById("input");
 const outputElement = document.getElementById("output");
 const statusElement = document.getElementById("status");
+const loadingScreenElement = document.getElementById("loading-screen");
 const clearButton = document.getElementById("clear-btn");
 const exampleButton = document.getElementById("example-btn");
 const documentButton = document.getElementById("document-btn");
@@ -91,6 +92,11 @@ const viewModeSplitButton = document.getElementById("view-mode-split");
 const viewModePreviewButton = document.getElementById("view-mode-preview");
 const colorThemeButton = document.getElementById("color-theme-btn");
 const colorThemeDropdown = document.getElementById("color-theme-dropdown");
+const mobileMenuButton = document.getElementById("mobile-menu-btn");
+const mobileDrawer = document.getElementById("mobile-drawer");
+const drawerOverlay = document.getElementById("drawer-overlay");
+const drawerCloseButton = document.getElementById("drawer-close-btn");
+const drawerContent = document.querySelector(".drawer-content");
 
 // All dropdowns
 const dropdowns = document.querySelectorAll(".dropdown");
@@ -149,9 +155,26 @@ function showStatus(message, isSuccess = false) {
   }
 }
 
+// Show loading screen
+function showLoadingScreen() {
+  loadingScreenElement.style.display = "flex";
+}
+
+// Hide loading screen
+function hideLoadingScreen() {
+  loadingScreenElement.style.opacity = "0";
+  loadingScreenElement.style.visibility = "hidden";
+  setTimeout(() => {
+    loadingScreenElement.style.display = "none";
+  }, 500); // Phù hợp với thời gian transition
+}
+
 // Update library loading status
 function updateLibraryStatus() {
   if (markedLoaded && mermaidLoaded) {
+    // Hide loading screen
+    hideLoadingScreen();
+
     showStatus("Tất cả thư viện đã được tải. Sẵn sàng sử dụng!", true);
     // Initialize on first load
     loadExample();
@@ -160,6 +183,7 @@ function updateLibraryStatus() {
 
 // Load libraries
 function loadLibraries() {
+  showLoadingScreen();
   showStatus("Đang tải thư viện...");
 
   // Load Marked.js
@@ -186,10 +210,139 @@ function loadLibraries() {
   });
 }
 
+// Toggle dropdown visibility
+function toggleDropdown(dropdown) {
+  // Close all other dropdowns first
+  dropdowns.forEach((d) => {
+    if (d !== dropdown) {
+      d.classList.remove("open");
+    }
+  });
+
+  // Toggle current dropdown
+  dropdown.classList.toggle("open");
+}
+
+// Close all dropdowns
+function closeAllDropdowns() {
+  dropdowns.forEach((dropdown) => {
+    dropdown.classList.remove("open");
+  });
+}
+
+// Mở menu drawer
+function openDrawer() {
+  mobileDrawer.classList.add("open");
+  drawerOverlay.classList.add("open");
+  document.body.style.overflow = "hidden"; // Ngăn scroll khi drawer mở
+}
+
+// Đóng menu drawer
+function closeDrawer() {
+  mobileDrawer.classList.remove("open");
+  drawerOverlay.classList.remove("open");
+  document.body.style.overflow = ""; // Khôi phục scroll
+}
+
+// Clone toolbar vào drawer
+function setupMobileDrawer() {
+  // Xóa nội dung cũ
+  drawerContent.innerHTML = "";
+
+  // Tạo các nút menu trong drawer
+  const buttons = [
+    {
+      id: "clear-btn-mobile",
+      icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>',
+      text: "Xóa nội dung",
+      handler: clearWithConfirmation,
+    },
+    {
+      id: "example-btn-mobile",
+      icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>',
+      text: "Tải ví dụ",
+      handler: loadExampleWithConfirmation,
+    },
+    {
+      id: "save-local-btn-mobile",
+      icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>',
+      text: "Lưu vào trình duyệt",
+      handler: saveToLocalStorage,
+    },
+    {
+      id: "open-local-btn-mobile",
+      icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h4l2 2h4a2 2 0 0 1 2 2v1"></path><circle cx="12" cy="17" r="5"></circle><polyline points="12 14 12 20"></polyline><polyline points="15 17 12 20 9 17"></polyline></svg>',
+      text: "Mở từ trình duyệt",
+      handler: showDocumentList,
+    },
+    {
+      id: "save-md-btn-mobile",
+      icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"></path><path d="M9 11l1 6 3-4 3 4 1-6"></path></svg>',
+      text: "Tải xuống Markdown",
+      handler: showSaveDialog,
+    },
+    {
+      id: "save-html-btn-mobile",
+      icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>',
+      text: "Tải xuống HTML",
+      handler: saveHtmlContent,
+    },
+    {
+      id: "print-btn-mobile",
+      icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>',
+      text: "Xuất PDF (In)",
+      handler: preparePrint,
+    },
+    {
+      id: "theme-toggle-btn-mobile",
+      icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>',
+      text: "Chuyển đổi giao diện sáng/tối",
+      handler: toggleTheme,
+    },
+  ];
+
+  // Thêm các nút vào drawer
+  buttons.forEach((button) => {
+    const menuItem = document.createElement("a");
+    menuItem.href = "#";
+    menuItem.id = button.id;
+    menuItem.className = "drawer-menu-item";
+    menuItem.innerHTML = `${button.icon} <span>${button.text}</span>`;
+    menuItem.addEventListener("click", (e) => {
+      e.preventDefault();
+      button.handler();
+      closeDrawer();
+    });
+
+    drawerContent.appendChild(menuItem);
+  });
+
+  // Thêm chọn theme màu vào drawer
+  const themeSelector = document.createElement("div");
+  themeSelector.className = "drawer-theme-selector";
+  themeSelector.innerHTML = `
+    <h4 style="margin: 1rem 0 0.5rem 0.5rem; color: var(--text-muted);">Màu sắc chủ đạo</h4>
+  `;
+
+  // Clone color options
+  const colorOptions = document.querySelectorAll(".color-option");
+  colorOptions.forEach((option) => {
+    const clonedOption = option.cloneNode(true);
+    clonedOption.addEventListener("click", () => {
+      const theme = clonedOption.getAttribute("data-theme");
+      setColorTheme(theme);
+      closeDrawer();
+    });
+    themeSelector.appendChild(clonedOption);
+  });
+
+  drawerContent.appendChild(themeSelector);
+}
+
 // Process Markdown and Mermaid
 function renderMarkdown() {
   if (!markedLoaded || !mermaidLoaded) {
-    alert("Đang tải thư viện, vui lòng đợi trong giây lát...");
+    showLoadingScreen();
     return;
   }
 
@@ -199,6 +352,10 @@ function renderMarkdown() {
   marked.setOptions({
     breaks: true,
     gfm: true,
+    headerIds: true,
+    pedantic: false,
+    smartLists: true,
+    xhtml: true,
   });
 
   // Convert Markdown to HTML
@@ -849,10 +1006,22 @@ inputElement.addEventListener("input", function () {
   }, 1000); // 1 second delay
 });
 
+mobileMenuButton.addEventListener("click", openDrawer);
+drawerCloseButton.addEventListener("click", closeDrawer);
+drawerOverlay.addEventListener("click", closeDrawer);
+
+// Close drawer khi resize về kích thước lớn hơn
+window.addEventListener("resize", function () {
+  if (window.innerWidth > 640 && mobileDrawer.classList.contains("open")) {
+    closeDrawer();
+  }
+});
+
 // Initialize
 document.addEventListener("DOMContentLoaded", function () {
   initTheme();
   loadLibraries();
+  setupMobileDrawer();
 
   // Set initial view mode
   const savedViewMode = localStorage.getItem("viewMode");
@@ -877,4 +1046,12 @@ document.addEventListener("DOMContentLoaded", function () {
   } catch (error) {
     console.error("Error auto-loading document:", error);
   }
+
+  // Đặt một timeout để tắt màn hình loading nếu thư viện không tải được sau 10 giây
+  setTimeout(() => {
+    if (loadingScreenElement.style.display !== "none") {
+      hideLoadingScreen();
+      showStatus("Có thể có vấn đề khi tải thư viện. Thử tải lại trang.", false);
+    }
+  }, 10000);
 });

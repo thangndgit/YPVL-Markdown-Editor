@@ -8,10 +8,68 @@
     <link rel="stylesheet" href="print.css" media="print" />
   </head>
   <body>
+    <div id="loading-screen">
+      <div class="loading-content">
+        <div class="loading-spinner"></div>
+        <h2>Đang tải thư viện...</h2>
+        <p>Vui lòng đợi trong giây lát</p>
+      </div>
+    </div>
+
     <div class="header">
       <h1>Trình chuyển đổi Markdown + Mermaid</h1>
       <p>Viết Markdown và vẽ biểu đồ Mermaid với bản xem trước trực tiếp</p>
+
+      <!-- Nút hiển thị menu cho mobile -->
+      <button id="mobile-menu-btn" class="mobile-menu-button">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
     </div>
+
+    <div id="status"></div>
+
+    <!-- Menu drawer cho mobile -->
+    <div id="mobile-drawer" class="mobile-drawer">
+      <div class="drawer-header">
+        <h3>Menu</h3>
+        <button id="drawer-close-btn" class="drawer-close-button">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="drawer-content">
+        <!-- Sẽ được clone từ toolbar -->
+      </div>
+    </div>
+
+    <!-- Overlay khi mở drawer -->
+    <div id="drawer-overlay" class="drawer-overlay"></div>
 
     <div id="status"></div>
 
