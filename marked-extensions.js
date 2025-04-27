@@ -137,7 +137,7 @@ function blockMathExtension() {
       return false;
     },
     renderer(token) {
-      return `<div class="math-block">${token.raw}</div>`;
+      return `<div class="math-block">$$${token.math}$$</div>`;
     },
   };
 }

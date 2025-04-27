@@ -495,10 +495,6 @@ body {
   position: relative;
 }
 
-#preview-panel .panel-content {
-  overflow: hidden;
-}
-
 /* Custom scrollbar */
 .panel-content::-webkit-scrollbar {
   width: 8px;

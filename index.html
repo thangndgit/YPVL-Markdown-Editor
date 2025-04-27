@@ -8,10 +8,14 @@
     <link rel="stylesheet" href="print.css" media="print" />
 
     <script src="marked-extensions.js"></script>
+
+    <!-- Markdown Support -->
     <script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js"></script>
 
+    <!-- Mermaid Support -->
     <script src="https://cdn.jsdelivr.net/npm/mermaid@11.6.0/dist/mermaid.min.js"></script>
 
+    <!-- Code Highlighter -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
     <link
       rel="stylesheet"
@@ -19,9 +23,11 @@
       id="highlight-theme"
     />
 
+    <!-- Emojis -->
     <script src="https://cdn.jsdelivr.net/npm/emoji-toolkit@7.0.0/lib/js/joypixels.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/emoji-toolkit@7.0.0/extras/css/joypixels.min.css" />
 
+    <!-- KaTeX For Render Math Expressions -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css" />
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js"></script>
     <script
@@ -488,9 +494,7 @@
           </svg>
           Xem trước
         </div>
-        <div class="panel-content">
-          <div id="output"></div>
-        </div>
+        <div id="output" class="panel-content"></div>
       </div>
     </div>
 

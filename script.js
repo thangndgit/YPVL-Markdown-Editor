@@ -196,7 +196,6 @@ function updateLibraryStatus() {
 }
 
 // Load libraries
-// Tìm hàm loadLibraries() và thay thế bằng đoạn này
 function loadLibraries() {
   showLoadingScreen();
   showStatus("Đang kiểm tra thư viện...");
@@ -374,27 +373,219 @@ function setupMobileDrawer() {
   drawerContent.appendChild(themeSelector);
 }
 
+// Hàm thêm data-source-line attribute cho các phần tử
+function addSourceLineAttributes() {
+  const content = inputElement.value;
+  const lines = content.split("\n");
+
+  // Tạo map chứa các line và các pattern cần tìm
+  const lineMap = new Map();
+
+  // Tìm các heading
+  lines.forEach((line, index) => {
+    const headingMatch = line.match(/^(#{1,6})\s+(.+)$/);
+    if (headingMatch) {
+      lineMap.set(`h${headingMatch[1].length}:${headingMatch[2].trim()}`, index);
+    }
+  });
+
+  // Tìm các paragraphs, lists, code blocks, etc.
+  let inCodeBlock = false;
+  let currentBlock = { type: null, content: [], startLine: -1 };
+
+  lines.forEach((line, index) => {
+    // Kiểm tra code block
+    if (line.trim().startsWith("```")) {
+      if (!inCodeBlock) {
+        // Bắt đầu code block mới
+        inCodeBlock = true;
+        currentBlock = { type: "codeblock", content: [line], startLine: index };
+      } else {
+        // Kết thúc code block
+        inCodeBlock = false;
+        currentBlock.content.push(line);
+        lineMap.set(`codeblock:${currentBlock.content.join("\n")}`, currentBlock.startLine);
+        currentBlock = { type: null, content: [], startLine: -1 };
+      }
+      return;
+    }
+
+    if (inCodeBlock) {
+      currentBlock.content.push(line);
+      return;
+    }
+
+    // Kiểm tra các loại block khác
+    // List items
+    if (line.trim().match(/^[-*+]\s+/)) {
+      if (currentBlock.type === "list") {
+        currentBlock.content.push(line);
+      } else {
+        // Kết thúc block trước nếu có
+        if (currentBlock.type) {
+          lineMap.set(`${currentBlock.type}:${currentBlock.content.join("\n")}`, currentBlock.startLine);
+        }
+        // Bắt đầu list mới
+        currentBlock = { type: "list", content: [line], startLine: index };
+      }
+      return;
+    }
+
+    // Numbered list
+    if (line.trim().match(/^\d+\.\s+/)) {
+      if (currentBlock.type === "numbered-list") {
+        currentBlock.content.push(line);
+      } else {
+        // Kết thúc block trước nếu có
+        if (currentBlock.type) {
+          lineMap.set(`${currentBlock.type}:${currentBlock.content.join("\n")}`, currentBlock.startLine);
+        }
+        // Bắt đầu numbered list mới
+        currentBlock = { type: "numbered-list", content: [line], startLine: index };
+      }
+      return;
+    }
+
+    // Blockquote
+    if (line.trim().startsWith(">")) {
+      if (currentBlock.type === "blockquote") {
+        currentBlock.content.push(line);
+      } else {
+        // Kết thúc block trước nếu có
+        if (currentBlock.type) {
+          lineMap.set(`${currentBlock.type}:${currentBlock.content.join("\n")}`, currentBlock.startLine);
+        }
+        // Bắt đầu blockquote mới
+        currentBlock = { type: "blockquote", content: [line], startLine: index };
+      }
+      return;
+    }
+
+    // Math block
+    if (line.trim() === "$$") {
+      if (currentBlock.type === "mathblock") {
+        currentBlock.content.push(line);
+        lineMap.set(`mathblock:${currentBlock.content.join("\n")}`, currentBlock.startLine);
+        currentBlock = { type: null, content: [], startLine: -1 };
+      } else {
+        // Bắt đầu math block mới
+        currentBlock = { type: "mathblock", content: [line], startLine: index };
+      }
+      return;
+    }
+
+    // Paragraph text
+    if (line.trim() !== "") {
+      if (currentBlock.type === "paragraph") {
+        currentBlock.content.push(line);
+      } else {
+        // Kết thúc block trước nếu có
+        if (currentBlock.type) {
+          lineMap.set(`${currentBlock.type}:${currentBlock.content.join("\n")}`, currentBlock.startLine);
+        }
+        // Chỉ bắt đầu paragraph mới nếu line không phải heading
+        if (!line.match(/^#{1,6}\s+/)) {
+          currentBlock = { type: "paragraph", content: [line], startLine: index };
+        } else {
+          currentBlock = { type: null, content: [], startLine: -1 };
+        }
+      }
+      return;
+    }
+
+    // Empty line - có thể kết thúc block hiện tại
+    if (line.trim() === "" && currentBlock.type) {
+      lineMap.set(`${currentBlock.type}:${currentBlock.content.join("\n")}`, currentBlock.startLine);
+      currentBlock = { type: null, content: [], startLine: -1 };
+    }
+  });
+
+  // Đảm bảo block cuối cùng cũng được thêm vào map
+  if (currentBlock.type) {
+    lineMap.set(`${currentBlock.type}:${currentBlock.content.join("\n")}`, currentBlock.startLine);
+  }
+
+  // Áp dụng line data cho các phần tử trong output
+  const elements = outputElement.querySelectorAll(
+    "h1, h2, h3, h4, h5, h6, p, ul, ol, pre, blockquote, .math-block, .mermaid-wrapper"
+  );
+
+  elements.forEach((element) => {
+    // Xử lý theo loại phần tử
+    if (element.tagName.match(/^H[1-6]$/)) {
+      const level = element.tagName.charAt(1);
+      const text = element.textContent.trim();
+      const key = `h${level}:${text}`;
+
+      if (lineMap.has(key)) {
+        element.setAttribute("data-source-line", lineMap.get(key));
+      }
+    } else if (element.tagName === "PRE" || element.classList.contains("math-block")) {
+      // Code blocks và math blocks
+      const text = element.textContent.trim();
+      // Tìm key gần đúng
+      for (const [key, line] of lineMap.entries()) {
+        if (key.startsWith("codeblock:") || key.startsWith("mathblock:")) {
+          const content = key.substring(key.indexOf(":") + 1);
+          if (text.includes(content) || content.includes(text)) {
+            element.setAttribute("data-source-line", line);
+            break;
+          }
+        }
+      }
+    } else if (element.tagName === "P") {
+      const text = element.textContent.trim();
+      // Tìm paragraph gần đúng
+      for (const [key, line] of lineMap.entries()) {
+        if (key.startsWith("paragraph:")) {
+          const content = key.substring(key.indexOf(":") + 1);
+          if (text === content || (content.length > 20 && text.includes(content.substring(0, 20)))) {
+            element.setAttribute("data-source-line", line);
+            break;
+          }
+        }
+      }
+    } else if (element.tagName === "UL" || element.tagName === "OL") {
+      const text = element.textContent.trim();
+      // Tìm list gần đúng
+      for (const [key, line] of lineMap.entries()) {
+        if (key.startsWith("list:") || key.startsWith("numbered-list:")) {
+          const content = key.substring(key.indexOf(":") + 1);
+          if (text.includes(content.substring(0, Math.min(content.length, 20)))) {
+            element.setAttribute("data-source-line", line);
+            break;
+          }
+        }
+      }
+    } else if (element.tagName === "BLOCKQUOTE") {
+      const text = element.textContent.trim();
+      // Tìm blockquote gần đúng
+      for (const [key, line] of lineMap.entries()) {
+        if (key.startsWith("blockquote:")) {
+          const content = key.substring(key.indexOf(":") + 1);
+          if (text.includes(content.substring(0, Math.min(content.length, 20)))) {
+            element.setAttribute("data-source-line", line);
+            break;
+          }
+        }
+      }
+    }
+  });
+}
+
 function renderMathExpressions() {
   // Xử lý các biểu thức toán học nếu KaTeX đã được tải
   if (typeof katex !== "undefined" && typeof renderMathInElement !== "undefined") {
     try {
-      // Xử lý inline math đầu tiên
-      renderMathInElement(outputElement, {
-        delimiters: [
-          { left: "$", right: "$", display: false },
-          { left: "\\(", right: "\\)", display: false },
-        ],
-        throwOnError: false,
-      });
-
-      // Sau đó xử lý block math riêng
+      // First handle all block math elements
       document.querySelectorAll(".math-block").forEach((element) => {
         try {
-          const mathText = element.innerHTML.trim();
+          const mathText = element.textContent.trim();
           if (mathText.startsWith("$$") && mathText.endsWith("$$")) {
             const content = mathText.slice(2, -2).trim();
-            // Reset nội dung để tránh xử lý lại
-            element.innerHTML = "";
+            // Clear the element content to avoid double rendering
+            element.textContent = "";
+            // Render the math expression
             katex.render(content, element, {
               displayMode: true,
               throwOnError: false,
@@ -402,29 +593,32 @@ function renderMathExpressions() {
             });
           }
         } catch (err) {
-          console.error("Lỗi khi render block math:", err, element.innerHTML);
+          console.error("Lỗi khi render block math:", err, element.textContent);
           // Giữ nội dung gốc nếu có lỗi
           element.classList.add("math-error");
           element.setAttribute("title", "Lỗi khi render: " + err.message);
         }
       });
+
+      // Then process inline math expressions
+      renderMathInElement(outputElement, {
+        delimiters: [
+          { left: "$", right: "$", display: false },
+          { left: "\\(", right: "\\)", display: false },
+        ],
+        throwOnError: false,
+        ignoredClasses: ["math-block", "code", "mermaid"], // Ignore elements that we've already processed
+      });
     } catch (error) {
       console.error("Lỗi khi render biểu thức toán học:", error);
+      showStatus("Có lỗi khi render biểu thức toán học: " + error.message, false);
     }
   }
 }
 
-// Process Markdown and Mermaid
+// Process Markdown
 function renderMarkdown() {
   const input = inputElement.value;
-
-  // Lưu trữ các biểu thức block math để xử lý sau
-  const blockMathExpressions = [];
-  let processedInput = input.replace(/\$\$([\s\S]+?)\$\$/g, (match, content) => {
-    const placeholder = `__BLOCK_MATH_${blockMathExpressions.length}__`;
-    blockMathExpressions.push(content.trim());
-    return placeholder;
-  });
 
   // Thiết lập extensions
   if (typeof window.markedExtensions !== "undefined") {
@@ -435,6 +629,7 @@ function renderMarkdown() {
         window.markedExtensions.subscript,
         window.markedExtensions.emoji,
         window.markedExtensions.highlight,
+        window.markedExtensions.blockMath, // Make sure this extension is registered
       ],
     });
   }
@@ -467,10 +662,11 @@ function renderMarkdown() {
     },
   });
 
-  // Tùy chỉnh renderer để xử lý code blocks
+  // Tùy chỉnh renderer để xử lý code blocks và math blocks
   const renderer = new marked.Renderer();
   const originalCodeRenderer = renderer.code;
 
+  // Custom renderer for code blocks
   renderer.code = function (code, language, isEscaped) {
     // Xử lý riêng cho mermaid
     if (language === "mermaid") {
@@ -537,6 +733,24 @@ function renderMarkdown() {
     `;
   };
 
+  // FIXED: Custom renderer for paragraphs to handle LaTeX block content
+  const originalParagraphRenderer = renderer.paragraph;
+  renderer.paragraph = function (text) {
+    // Check if the paragraph contains only a LaTeX block
+    if (text.trim().startsWith("$$") && text.trim().endsWith("$$")) {
+      return `<div class="math-block">${text}</div>`;
+    }
+    return originalParagraphRenderer.call(this, text);
+  };
+
+  // FIXED: Manually pre-process the text for better math handling
+  // Handle block math expressions before passing to marked
+  const blockMathRegex = /\$\$([\s\S]+?)\$\$/g;
+  const processedInput = input.replace(blockMathRegex, function (match) {
+    // Wrap the entire match with HTML to protect it from marked processing
+    return `<div class="math-block">${match}</div>`;
+  });
+
   // Chuyển đổi Markdown sang HTML với renderer tùy chỉnh
   let html = marked.parse(processedInput, { renderer: renderer });
 
@@ -545,15 +759,11 @@ function renderMarkdown() {
     html = window.processFootnotes(html, processedInput);
   }
 
-  // Thay thế lại các placeholder bằng block math
-  blockMathExpressions.forEach((math, index) => {
-    const placeholder = `__BLOCK_MATH_${index}__`;
-    const mathHtml = `<div class="math-block">$$${math}$$</div>`;
-    html = html.replace(placeholder, mathHtml);
-  });
-
   // Hiển thị HTML
   outputElement.innerHTML = html;
+
+  // Thêm data-source-line attribute cho các phần tử
+  addSourceLineAttributes();
 
   // Khởi tạo mermaid
   try {
@@ -1289,13 +1499,9 @@ confirmDialogOverlay.addEventListener("click", (e) => {
   }
 });
 
-// Auto render on input change with debounce
-let timeout = null;
+// Auto render on input change
 inputElement.addEventListener("input", function () {
-  clearTimeout(timeout);
-  timeout = setTimeout(function () {
-    renderMarkdown();
-  }, 1000); // 1 second delay
+  renderMarkdown();
 });
 
 mobileMenuButton.addEventListener("click", openDrawer);
@@ -1309,10 +1515,146 @@ window.addEventListener("resize", function () {
   }
 });
 
+// Đồng bộ scroll giữa editor và preview
+// Đồng bộ scroll giữa editor và preview
+function setupScrollSync() {
+  // Biến để lưu trạng thái scroll
+  let isEditorScrolling = false;
+  let isPreviewScrolling = false;
+
+  // Các phần tử cần đồng bộ scroll
+  const editorContent = inputElement;
+  const previewContent = document.querySelector("#output");
+
+  // Hàm tìm phần tử đầu tiên trong viewport
+  function getFirstVisibleElement(container) {
+    if (container === editorContent) {
+      // Tính toán dòng hiện tại trong editor
+      const lineHeight = parseInt(getComputedStyle(editorContent).lineHeight);
+      const scrollTop = editorContent.scrollTop;
+      const currentLine = Math.floor(scrollTop / lineHeight);
+      return { line: currentLine, ratio: (scrollTop % lineHeight) / lineHeight };
+    } else {
+      // Tìm phần tử đầu tiên trong preview
+      const elements = container.querySelectorAll("[data-source-line]");
+      if (!elements.length) return null;
+
+      const containerRect = container.getBoundingClientRect();
+
+      // Tìm phần tử đầu tiên có phần nhìn thấy được trong viewport
+      for (const element of elements) {
+        const rect = element.getBoundingClientRect();
+        // Nếu phần tử có phần dưới cùng nằm trong viewport
+        if (rect.top < containerRect.bottom && rect.bottom > containerRect.top) {
+          // Tính tỉ lệ phần tử đã scroll qua
+          const visibleRatio = Math.max(0, (containerRect.top - rect.top) / rect.height);
+          const sourceLine = parseInt(element.getAttribute("data-source-line"));
+          return { element, line: sourceLine, ratio: visibleRatio };
+        }
+      }
+
+      return null;
+    }
+  }
+
+  // Hàm di chuyển editor đến một dòng cụ thể
+  function scrollEditorToLine(line, ratio = 0) {
+    const lineHeight = parseInt(getComputedStyle(editorContent).lineHeight);
+    const targetScrollTop = line * lineHeight + ratio * lineHeight;
+    editorContent.scrollTop = targetScrollTop;
+  }
+
+  // Hàm di chuyển preview đến phần tử có data-source-line
+  function scrollPreviewToLine(line) {
+    const elements = previewContent.querySelectorAll("[data-source-line]");
+    let targetElement = null;
+    let minDistance = Infinity;
+
+    // Tìm phần tử có data-source-line gần nhất với dòng
+    for (const element of elements) {
+      const sourceLine = parseInt(element.getAttribute("data-source-line"));
+      const distance = Math.abs(sourceLine - line);
+
+      if (distance < minDistance) {
+        minDistance = distance;
+        targetElement = element;
+      }
+    }
+
+    if (targetElement) {
+      // Scroll đến phần tử đó
+      const containerRect = previewContent.getBoundingClientRect();
+      const elementRect = targetElement.getBoundingClientRect();
+      const scrollOffset = elementRect.top - containerRect.top - previewContent.offsetTop;
+
+      previewContent.scrollTop += scrollOffset;
+    }
+  }
+
+  // Scroll handler cho editor
+  editorContent.addEventListener("scroll", function () {
+    if (isPreviewScrolling) return;
+
+    isEditorScrolling = true;
+
+    // Tìm dòng hiện tại trong editor
+    const firstVisible = getFirstVisibleElement(editorContent);
+    if (firstVisible) {
+      scrollPreviewToLine(firstVisible.line);
+    }
+
+    // Reset state sau một khoảng thời gian ngắn
+    setTimeout(() => {
+      isEditorScrolling = false;
+    }, 100);
+  });
+
+  // Scroll handler cho preview
+  previewContent.addEventListener("scroll", function () {
+    if (isEditorScrolling) return;
+
+    isPreviewScrolling = true;
+
+    // Tìm phần tử đầu tiên trong viewport của preview
+    const firstVisible = getFirstVisibleElement(previewContent);
+    if (firstVisible && firstVisible.line !== undefined) {
+      scrollEditorToLine(firstVisible.line, firstVisible.ratio);
+    }
+
+    // Reset state sau một khoảng thời gian ngắn
+    setTimeout(() => {
+      isPreviewScrolling = false;
+    }, 100);
+  });
+
+  // Thêm sự kiện throttled scroll để giảm số lần xử lý
+  let scrollTimeout;
+  function throttledScroll(element, handler) {
+    element.addEventListener("scroll", function () {
+      if (!scrollTimeout) {
+        scrollTimeout = setTimeout(function () {
+          handler();
+          scrollTimeout = null;
+        }, 10); // 10ms throttle
+      }
+    });
+  }
+
+  // Áp dụng throttle cho cả hai phần tử
+  throttledScroll(editorContent, () => {
+    if (!isPreviewScrolling && !scrollTimeout) editorContent.dispatchEvent(new Event("scroll"));
+  });
+
+  throttledScroll(previewContent, () => {
+    if (!isEditorScrolling && !scrollTimeout) previewContent.dispatchEvent(new Event("scroll"));
+  });
+}
+
 // Initialize
 document.addEventListener("DOMContentLoaded", function () {
   initTheme();
   loadLibraries();
+  setupScrollSync();
   setupMobileDrawer();
 
   // Set initial view mode
