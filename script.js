@@ -699,7 +699,7 @@ function toggleTheme() {
   // Cập nhật theme của highlight.js (đã sửa)
   const highlightTheme = document.getElementById("highlight-theme");
   if (highlightTheme) {
-    highlightTheme.href = `https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/${
+    highlightTheme.href = `https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/${
       newTheme === "dark" ? "github-dark" : "github"
     }.min.css`;
   }
@@ -753,7 +753,7 @@ function initTheme() {
     // Cập nhật theme của highlight.js (đã sửa)
     const highlightTheme = document.getElementById("highlight-theme");
     if (highlightTheme) {
-      highlightTheme.href = `https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/${
+      highlightTheme.href = `https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/${
         savedTheme === "dark" ? "github-dark" : "github"
       }.min.css`;
     }
@@ -1016,7 +1016,7 @@ function saveHtmlContent() {
       text-align: center;
     }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/mermaid@8.14.0/dist/mermaid.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11.6.0/dist/mermaid.min.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       mermaid.initialize({
