@@ -124,6 +124,7 @@ function loadScript(url, callback) {
 // Show loading status
 function showStatus(message, isSuccess = false) {
   statusElement.style.display = "block";
+  statusElement.style.opacity = "1"; // Đảm bảo hiển thị rõ ràng
 
   if (isSuccess) {
     statusElement.innerHTML = `
@@ -139,19 +140,32 @@ function showStatus(message, isSuccess = false) {
   } else {
     statusElement.innerHTML = `
       <div style="display: flex; align-items: center; gap: 8px;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
         </svg>
         <span>${message}</span>
       </div>
     `;
-    statusElement.style.backgroundColor = "#e8f5e9";
+    statusElement.style.backgroundColor = "#fee2e2";
   }
 
   if (isSuccess) {
     setTimeout(() => {
-      statusElement.style.display = "none";
-    }, 3000);
+      statusElement.style.opacity = "0";
+      setTimeout(() => {
+        statusElement.style.display = "none";
+      }, 300);
+    }, 2500);
+  } else {
+    // Hiển thị lâu hơn đối với thông báo lỗi
+    setTimeout(() => {
+      statusElement.style.opacity = "0";
+      setTimeout(() => {
+        statusElement.style.display = "none";
+      }, 300);
+    }, 3500);
   }
 }
 
@@ -182,32 +196,53 @@ function updateLibraryStatus() {
 }
 
 // Load libraries
+// Tìm hàm loadLibraries() và thay thế bằng đoạn này
 function loadLibraries() {
   showLoadingScreen();
-  showStatus("Đang tải thư viện...");
+  showStatus("Đang kiểm tra thư viện...");
 
-  // Load Marked.js
-  loadScript("https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js", function () {
-    markedLoaded = true;
-    updateLibraryStatus();
-  });
-
-  // Load Mermaid.js
-  loadScript("https://cdn.jsdelivr.net/npm/mermaid@8.14.0/dist/mermaid.min.js", function () {
-    mermaidLoaded = true;
-
-    // Initialize Mermaid
-    if (typeof mermaid !== "undefined") {
+  // Đặt timeout để đảm bảo DOM và các thư viện đã được tải hoàn tất
+  setTimeout(() => {
+    // Kiểm tra nếu các thư viện đã được tải
+    if (typeof marked !== "undefined" && typeof mermaid !== "undefined" && typeof hljs !== "undefined") {
+      // Khởi tạo Mermaid
       mermaid.initialize({
         startOnLoad: false,
-        theme: "default",
+        theme: document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "default",
         securityLevel: "loose",
         fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif',
       });
-    }
 
-    updateLibraryStatus();
-  });
+      // Khởi tạo highlight.js
+      hljs.configure({
+        languages: [
+          "javascript",
+          "python",
+          "html",
+          "css",
+          "java",
+          "php",
+          "ruby",
+          "go",
+          "bash",
+          "json",
+          "sql",
+          "typescript",
+        ],
+      });
+
+      // Ẩn loading screen
+      hideLoadingScreen();
+      showStatus("Tất cả thư viện đã được tải. Sẵn sàng sử dụng!", true);
+
+      // Khởi tạo ví dụ
+      loadExample();
+    } else {
+      // Hiển thị lỗi nếu không tải được thư viện
+      hideLoadingScreen();
+      showStatus("Không thể tải một số thư viện. Vui lòng tải lại trang.", false);
+    }
+  }, 1000);
 }
 
 // Toggle dropdown visibility
@@ -339,16 +374,72 @@ function setupMobileDrawer() {
   drawerContent.appendChild(themeSelector);
 }
 
+function renderMathExpressions() {
+  // Xử lý các biểu thức toán học nếu KaTeX đã được tải
+  if (typeof katex !== "undefined" && typeof renderMathInElement !== "undefined") {
+    try {
+      // Xử lý inline math đầu tiên
+      renderMathInElement(outputElement, {
+        delimiters: [
+          { left: "$", right: "$", display: false },
+          { left: "\\(", right: "\\)", display: false },
+        ],
+        throwOnError: false,
+      });
+
+      // Sau đó xử lý block math riêng
+      document.querySelectorAll(".math-block").forEach((element) => {
+        try {
+          const mathText = element.innerHTML.trim();
+          if (mathText.startsWith("$$") && mathText.endsWith("$$")) {
+            const content = mathText.slice(2, -2).trim();
+            // Reset nội dung để tránh xử lý lại
+            element.innerHTML = "";
+            katex.render(content, element, {
+              displayMode: true,
+              throwOnError: false,
+              output: "html",
+            });
+          }
+        } catch (err) {
+          console.error("Lỗi khi render block math:", err, element.innerHTML);
+          // Giữ nội dung gốc nếu có lỗi
+          element.classList.add("math-error");
+          element.setAttribute("title", "Lỗi khi render: " + err.message);
+        }
+      });
+    } catch (error) {
+      console.error("Lỗi khi render biểu thức toán học:", error);
+    }
+  }
+}
+
 // Process Markdown and Mermaid
 function renderMarkdown() {
-  if (!markedLoaded || !mermaidLoaded) {
-    showLoadingScreen();
-    return;
-  }
-
   const input = inputElement.value;
 
-  // Configure Marked
+  // Lưu trữ các biểu thức block math để xử lý sau
+  const blockMathExpressions = [];
+  let processedInput = input.replace(/\$\$([\s\S]+?)\$\$/g, (match, content) => {
+    const placeholder = `__BLOCK_MATH_${blockMathExpressions.length}__`;
+    blockMathExpressions.push(content.trim());
+    return placeholder;
+  });
+
+  // Thiết lập extensions
+  if (typeof window.markedExtensions !== "undefined") {
+    // Đăng ký các extensions cho marked
+    marked.use({
+      extensions: [
+        window.markedExtensions.superscript,
+        window.markedExtensions.subscript,
+        window.markedExtensions.emoji,
+        window.markedExtensions.highlight,
+      ],
+    });
+  }
+
+  // Cấu hình Marked
   marked.setOptions({
     breaks: true,
     gfm: true,
@@ -356,33 +447,122 @@ function renderMarkdown() {
     pedantic: false,
     smartLists: true,
     xhtml: true,
+    highlight: function (code, lang) {
+      // Nếu specified language và hljs hỗ trợ language này
+      if (lang && hljs.getLanguage(lang)) {
+        try {
+          return hljs.highlight(code, { language: lang }).value;
+        } catch (err) {
+          console.error("Highlight.js error:", err);
+        }
+      }
+      // Sử dụng autodetect nếu không specified language
+      try {
+        return hljs.highlightAuto(code).value;
+      } catch (err) {
+        console.error("Highlight.js autodetect error:", err);
+      }
+      // Trả về mặc định nếu có lỗi
+      return code;
+    },
   });
 
-  // Convert Markdown to HTML
-  let html = marked.parse(input);
+  // Tùy chỉnh renderer để xử lý code blocks
+  const renderer = new marked.Renderer();
+  const originalCodeRenderer = renderer.code;
 
-  // Display HTML
+  renderer.code = function (code, language, isEscaped) {
+    // Xử lý riêng cho mermaid
+    if (language === "mermaid") {
+      return `
+        <div class="mermaid-wrapper">
+          <div class="mermaid-header">
+            <span class="mermaid-title">Mermaid Diagram</span>
+            <div style="display: flex; gap: 0.25rem;">
+              <button class="code-copy" title="Sao chép mã nguồn" data-code="${encodeURIComponent(code)}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+              </button>
+              <button class="mermaid-download" title="Tải biểu đồ" data-diagram="${encodeURIComponent(code)}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div class="mermaid">${code}</div>
+        </div>
+      `;
+    }
+
+    // Tạo code block bình thường với language
+    if (language && language !== "mermaid") {
+      // Tạo code block có header
+      return `
+        <div class="code-block-wrapper">
+          <div class="code-header">
+            <span class="code-language">${language}</span>
+            <button class="code-copy" title="Sao chép" data-code="${encodeURIComponent(code)}">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+            </button>
+          </div>
+          <pre class="has-header">${originalCodeRenderer
+            .call(this, code, language, isEscaped)
+            .replace(/<pre>|<\/pre>/g, "")}</pre>
+        </div>
+      `;
+    }
+
+    // Code block không có language hoặc header
+    const renderedCode = originalCodeRenderer.call(this, code, language, isEscaped);
+    return `
+      <div class="code-block-no-header">
+        <div class="code-no-header-actions">
+          <button class="code-copy" title="Sao chép" data-code="${encodeURIComponent(code)}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+          </button>
+        </div>
+        ${renderedCode}
+      </div>
+    `;
+  };
+
+  // Chuyển đổi Markdown sang HTML với renderer tùy chỉnh
+  let html = marked.parse(processedInput, { renderer: renderer });
+
+  // Xử lý footnotes theo cách thủ công
+  if (typeof window.processFootnotes === "function") {
+    html = window.processFootnotes(html, processedInput);
+  }
+
+  // Thay thế lại các placeholder bằng block math
+  blockMathExpressions.forEach((math, index) => {
+    const placeholder = `__BLOCK_MATH_${index}__`;
+    const mathHtml = `<div class="math-block">$$${math}$$</div>`;
+    html = html.replace(placeholder, mathHtml);
+  });
+
+  // Hiển thị HTML
   outputElement.innerHTML = html;
 
-  // Process Mermaid blocks
+  // Khởi tạo mermaid
   try {
-    document.querySelectorAll("code.language-mermaid").forEach((node) => {
-      // Create a new mermaid div
-      const div = document.createElement("div");
-      div.className = "mermaid";
-      div.textContent = node.textContent;
-
-      // Replace the code tag with the mermaid div
-      node.parentNode.parentNode.replaceChild(div, node.parentNode);
-    });
-
-    // Initialize mermaid
     if (typeof mermaid !== "undefined") {
       mermaid.init(undefined, document.querySelectorAll(".mermaid"));
     }
   } catch (error) {
     console.error("Lỗi xử lý mermaid:", error);
-    // Show error message
+    // Hiện thông báo lỗi
     const errorDiv = document.createElement("div");
     errorDiv.style.padding = "10px";
     errorDiv.style.margin = "10px 0";
@@ -392,6 +572,101 @@ function renderMarkdown() {
     errorDiv.innerHTML = `<strong>Lỗi:</strong> ${error.message}`;
     outputElement.appendChild(errorDiv);
   }
+
+  // Xử lý emoji trực tiếp nếu có joypixels
+  if (typeof joypixels !== "undefined") {
+    // Chuyển đổi emoji shortname còn sót lại (nếu có)
+    try {
+      const elements = outputElement.querySelectorAll("p, h1, h2, h3, h4, h5, h6, li, td, th, blockquote");
+      elements.forEach((el) => {
+        if (el.innerHTML.includes(":") && !el.closest("pre") && !el.closest("code")) {
+          el.innerHTML = joypixels.shortnameToImage(el.innerHTML);
+        }
+      });
+    } catch (e) {
+      console.error("Lỗi khi xử lý emoji:", e);
+    }
+  }
+
+  // Render biểu thức toán học
+  renderMathExpressions();
+
+  // Thêm chức năng sao chép cho các nút sao chép code
+  document.querySelectorAll(".code-copy").forEach((button) => {
+    button.addEventListener("click", function () {
+      // Lấy mã code từ thuộc tính data-code
+      const code = decodeURIComponent(this.getAttribute("data-code"));
+
+      // Sao chép vào clipboard
+      navigator.clipboard
+        .writeText(code)
+        .then(() => {
+          // Thay đổi icon thành tick để chỉ ra đã sao chép thành công
+          const originalHTML = this.innerHTML;
+          this.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        `;
+          this.style.color = "var(--success-color)";
+
+          // Trở lại icon ban đầu sau 2 giây
+          setTimeout(() => {
+            this.innerHTML = originalHTML;
+            this.style.color = "";
+          }, 2000);
+        })
+        .catch((err) => {
+          console.error("Không thể sao chép văn bản: ", err);
+        });
+    });
+  });
+
+  // Thêm chức năng tải biểu đồ Mermaid
+  document.querySelectorAll(".mermaid-download").forEach((button) => {
+    button.addEventListener("click", async function () {
+      const diagramCode = decodeURIComponent(this.getAttribute("data-diagram"));
+      const mermaidDiv = this.closest(".mermaid-wrapper").querySelector(".mermaid");
+
+      // Hiển thị spinner trong khi xử lý
+      const originalHTML = this.innerHTML;
+      this.innerHTML = `<span class="download-spinner"></span>`;
+
+      try {
+        // Chờ một chút để đảm bảo Mermaid đã render xong
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        // Tạo canvas từ SVG để chuyển thành hình ảnh
+        const svgElement = mermaidDiv.querySelector("svg");
+        if (!svgElement) {
+          throw new Error("Không tìm thấy SVG của biểu đồ");
+        }
+
+        // Lấy SVG dưới dạng string
+        const svgData = new XMLSerializer().serializeToString(svgElement);
+        const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
+
+        // Tạo URL và tải xuống
+        const url = URL.createObjectURL(svgBlob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "mermaid-diagram.svg";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        // Trở lại icon ban đầu
+        this.innerHTML = originalHTML;
+      } catch (error) {
+        console.error("Lỗi khi tải biểu đồ:", error);
+        this.innerHTML = originalHTML;
+
+        // Hiển thị thông báo lỗi
+        showStatus("Không thể tải biểu đồ: " + error.message, false);
+      }
+    });
+  });
 }
 
 // Extract H1 heading from markdown
@@ -421,6 +696,14 @@ function toggleTheme() {
   htmlElement.setAttribute("data-theme", newTheme);
   localStorage.setItem("theme", newTheme);
 
+  // Cập nhật theme của highlight.js (đã sửa)
+  const highlightTheme = document.getElementById("highlight-theme");
+  if (highlightTheme) {
+    highlightTheme.href = `https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/${
+      newTheme === "dark" ? "github-dark" : "github"
+    }.min.css`;
+  }
+
   // Toggle theme icons
   if (newTheme === "dark") {
     themeIconLight.style.display = "none";
@@ -430,8 +713,8 @@ function toggleTheme() {
     themeIconDark.style.display = "none";
   }
 
-  // Update mermaid theme if it's loaded
-  if (mermaidLoaded && typeof mermaid !== "undefined") {
+  // Update mermaid theme
+  if (typeof mermaid !== "undefined") {
     mermaid.initialize({
       startOnLoad: false,
       theme: newTheme === "dark" ? "dark" : "default",
@@ -466,6 +749,15 @@ function initTheme() {
   const savedTheme = localStorage.getItem("theme");
   if (savedTheme) {
     document.documentElement.setAttribute("data-theme", savedTheme);
+
+    // Cập nhật theme của highlight.js (đã sửa)
+    const highlightTheme = document.getElementById("highlight-theme");
+    if (highlightTheme) {
+      highlightTheme.href = `https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/${
+        savedTheme === "dark" ? "github-dark" : "github"
+      }.min.css`;
+    }
+
     if (savedTheme === "dark") {
       themeIconLight.style.display = "none";
       themeIconDark.style.display = "block";

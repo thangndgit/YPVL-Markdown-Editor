@@ -1,5 +1,6 @@
 :root {
   /* Light theme */
+  --primary-color-rgb: 67, 97, 238;
   --primary-color: #4361ee;
   --secondary-color: #3f37c9;
   --accent-color: #4cc9f0;
@@ -22,46 +23,54 @@
 
 /* Định nghĩa các theme màu */
 .theme-blue {
+  --primary-color-rgb: 67, 97, 238;
   --primary-color: #4361ee;
   --secondary-color: #3f37c9;
 }
 
 .theme-purple {
-  --primary-color: #8b5cf6;
+  --primary-color-rgb: 139, 92, 246;
   --secondary-color: #7c3aed;
 }
 
 .theme-green {
+  --primary-color-rgb: 16, 185, 129;
   --primary-color: #10b981;
   --secondary-color: #059669;
 }
 
 .theme-red {
+  --primary-color-rgb: 239, 68, 68;
   --primary-color: #ef4444;
   --secondary-color: #dc2626;
 }
 
 .theme-orange {
+  --primary-color-rgb: 249, 115, 22;
   --primary-color: #f97316;
   --secondary-color: #ea580c;
 }
 
 .theme-teal {
+  --primary-color-rgb: 20, 184, 166;
   --primary-color: #14b8a6;
   --secondary-color: #0d9488;
 }
 
 .theme-slate {
+  --primary-color-rgb: 71, 85, 105;
   --primary-color: #475569;
   --secondary-color: #334155;
 }
 
 .theme-black {
+  --primary-color-rgb: 51, 51, 51;
   --primary-color: #333333;
   --secondary-color: #000000;
 }
 
 [data-theme="dark"] {
+  --primary-color-rgb: 129, 140, 248;
   --primary-color: #818cf8;
   --secondary-color: #6366f1;
   --accent-color: #22d3ee;
@@ -618,6 +627,14 @@ textarea::-webkit-scrollbar-thumb:hover {
   margin-bottom: 0.3em;
 }
 
+#output li:has(input[disabled][type="checkbox"]) {
+  list-style: none;
+}
+
+#output li input[disabled][type="checkbox"] {
+  margin-left: -1.5em;
+}
+
 #output code {
   background-color: var(--code-bg);
   padding: 0.2em 0.4em;
@@ -626,13 +643,169 @@ textarea::-webkit-scrollbar-thumb:hover {
   transition: background-color 0.3s;
 }
 
-#output pre {
-  background-color: var(--code-bg);
-  padding: 0.7em;
+/* Code block styling */
+.code-block-wrapper {
+  margin-bottom: 1rem;
   border-radius: var(--radius);
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+}
+
+.code-block-no-header {
+  position: relative;
+}
+
+.code-block-no-header:hover .code-no-header-actions {
+  opacity: 1;
+}
+
+.code-no-header-actions {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  opacity: 0;
+  transition: opacity 0.2s;
+  display: flex;
+  gap: 0.25rem;
+  background-color: var(--panel-bg);
+  border-radius: var(--radius);
+  padding: 0.2rem;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.code-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--code-bg);
+  padding: 0.4rem 0.7rem;
+  border-bottom: 1px solid var(--border-color);
+  font-family: monospace;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.code-language {
+  font-weight: 500;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+}
+
+.code-copy {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 4px;
+  border-radius: 3px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+}
+
+.code-copy:hover {
+  color: var(--primary-color);
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="dark"] .code-copy:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.mermaid-download {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 4px;
+  border-radius: 3px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  margin-left: 0.25rem;
+}
+
+.mermaid-download:hover {
+  color: var(--primary-color);
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="dark"] .mermaid-download:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Thêm spinner cho quá trình tải xuống */
+.download-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--text-muted);
+  border-top: 2px solid var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* Highlight text style */
+#output mark {
+  background-color: rgba(var(--primary-color-rgb), 0.3);
+  /* color: white; */
+  padding: 0 4px;
+  border-radius: 3px;
+  font-weight: normal;
+}
+
+#output pre {
+  margin-top: 0;
+  margin-bottom: 0;
+  padding: 1rem;
+  background-color: var(--code-bg);
   overflow-x: auto;
-  margin-bottom: 0.7em;
-  transition: background-color 0.3s;
+}
+
+#output pre code {
+  background-color: transparent;
+  padding: 0;
+  border-radius: 0;
+}
+
+/* Cập nhật style cho pre code không nằm trong code-block-wrapper */
+#output pre:not(.has-header) {
+  border-radius: var(--radius);
+  border: 1px solid var(--border-color);
+  padding: 1rem;
+}
+
+/* Style cho mermaid diagram */
+.mermaid-wrapper {
+  margin: 1.5rem 0;
+  position: relative;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 1rem;
+  background-color: var(--panel-bg);
+  overflow: hidden;
+}
+
+.mermaid-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.4rem 0.7rem;
+  background-color: var(--code-bg);
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-muted);
+  margin: -1rem -1rem 1rem -1rem;
+}
+
+.mermaid-title {
+  font-weight: 500;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+}
+
+.mermaid {
+  margin: 0;
+  text-align: center;
 }
 
 #output blockquote {
@@ -680,18 +853,121 @@ textarea::-webkit-scrollbar-thumb:hover {
   text-align: right;
 }
 
+/* Superscript và Subscript */
+#output sup {
+  font-size: 0.75em;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+  top: -0.5em;
+}
+
+#output sub {
+  font-size: 0.75em;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+  bottom: -0.25em;
+}
+
+/* Math expressions */
+.math-inline {
+  display: inline-block;
+  margin: 0 0.2em;
+  vertical-align: middle;
+}
+
+.math-block {
+  display: block;
+  margin: 1em 0;
+  text-align: center;
+  overflow-x: auto;
+}
+
+/* Math error style */
+.math-error {
+  background-color: rgba(255, 0, 0, 0.1);
+  padding: 1em;
+  border-radius: var(--radius);
+  border: 1px solid rgba(255, 0, 0, 0.3);
+  color: var(--error-color);
+}
+
+/* Thêm padding cho các hộp công thức */
+.katex-display {
+  padding: 1em 0;
+  overflow-x: auto;
+}
+
+/* Dark theme overrides for KaTeX */
+[data-theme="dark"] .katex {
+  color: var(--text-color);
+}
+
+/* Footnotes */
+.footnotes {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.footnotes::before {
+  content: "Chú thích";
+  font-weight: bold;
+  color: var(--primary-color);
+  display: block;
+  margin-bottom: 0.75rem;
+}
+
+.footnotes ol {
+  margin-left: 1rem;
+}
+
+.footnotes li {
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.footnotes li p {
+  margin-bottom: 0.25rem;
+  display: inline;
+}
+
+.footnote-ref {
+  font-size: 0.75em;
+  position: relative;
+  top: -0.5em;
+  text-decoration: none;
+  padding: 0 2px;
+  color: var(--primary-color);
+  background-color: var(--code-bg);
+  border-radius: 3px;
+}
+
+.footnote-backref {
+  text-decoration: none;
+  color: var(--primary-color);
+}
+
+/* Emoji */
+.emoji {
+  height: 1.2em;
+  width: 1.2em;
+  margin: 0 0.05em 0 0.1em;
+  vertical-align: -0.2em;
+}
+
 #status {
   padding: 10px 16px;
   border-radius: var(--radius);
-  background-color: #e8f5e9;
-  display: none;
-  animation: fadeIn 0.3s ease-in-out;
   position: absolute;
   top: 1rem;
   left: 50%;
   transform: translateX(-50%);
   z-index: 100;
   box-shadow: var(--shadow);
+  transition: opacity 0.3s ease;
 }
 
 /* View mode toolbar */
